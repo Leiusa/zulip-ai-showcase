@@ -60,10 +60,10 @@ def suggest_topic_title_backend(request: HttpRequest, user_profile: UserProfile)
     if message_id is None and not message_ids:
         raise JsonableError("message_id or message_ids is required")
 
-    # 1) anchor_id 用于后续 rename whole topic 的 patch (/json/messages/{id})
+    # 1) anchor_id is used later for the "rename whole topic" PATCH (/json/messages/{id})
     anchor_id = message_id if message_id is not None else message_ids[-1]
 
-    # 2) 核心：texts 优先用 message_ids（只看这一包），不要再抓 20 条历史
+    # 2) Core behavior: prioritize message_ids (current batch only), do not fetch extra history.
     texts: list[str] = []
     if message_ids:
         if len(message_ids) > 50:
@@ -71,10 +71,10 @@ def suggest_topic_title_backend(request: HttpRequest, user_profile: UserProfile)
 
         msgs = list(Message.objects.filter(id__in=message_ids).only("id", "content"))
         msg_map = {m.id: (m.content or "").strip() for m in msgs}
-        # 保持前端顺序
+        # Preserve frontend order.
         texts = [msg_map[mid] for mid in message_ids if mid in msg_map and msg_map[mid]]
     else:
-        # fallback：只传了 message_id
+        # Fallback: only message_id was provided.
         try:
             anchor = Message.objects.only("id", "content", "subject").get(id=anchor_id)
         except Message.DoesNotExist:
@@ -110,6 +110,6 @@ def suggest_topic_title_backend(request: HttpRequest, user_profile: UserProfile)
         request,
         {
             "suggested_title": (suggested or "").strip(),
-            "anchor_id": anchor_id,  # 前端 rename whole topic 需要它
+            "anchor_id": anchor_id,  # Required by frontend to rename the whole topic.
         },
     )

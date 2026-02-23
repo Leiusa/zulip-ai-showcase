@@ -348,7 +348,7 @@ export function maybe_request_topic_suggestion(message_ids: number[]): void {
         return;
     }
 
-    // “3条一包，不重叠”：用最后 MIN_MSGS 条，然后立即清空
+    // Use non-overlapping batches: take the last MIN_MSGS, then clear immediately.
     const ids_for_server = batch_ids.slice(-MIN_MSGS).slice(-MAX_IDS_SENT);
     batch_ids = [];
 

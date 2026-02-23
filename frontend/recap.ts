@@ -19,14 +19,14 @@ function unlock_page_scroll(): void {
     document.querySelector(".modal__overlay")?.remove();
     document.querySelector(".micromodal.modal--open")?.remove();
 
-    // 2) 清理 body/html 上的滚动锁
+    // 2) Clear scroll lock state on body/html.
     document.body.classList.remove("micromodal-open");
     document.documentElement.classList.remove("micromodal-open");
 
     document.body.style.overflow = "";
     document.documentElement.style.overflow = "";
 
-    // 有些实现会用 overflowY / position 锁滚动
+    // Some implementations lock scrolling via overflowY/position.
     (document.body.style as any).overflowY = "";
     (document.documentElement.style as any).overflowY = "";
     document.body.style.position = "";
@@ -68,13 +68,13 @@ function ensure_inbox_button(): void {
     btn.className = "button button-small";
     btn.textContent = "Unread recap";
 
-    // 放在 Inbox 主界面右上角，不影响布局
+    // Place it at the top-right of the Inbox main view without affecting layout.
     btn.style.position = "absolute";
     btn.style.top = "10px";
     btn.style.right = "10px";
     btn.style.zIndex = "20";
 
-    // 确保父容器能作为定位参照
+    // Ensure the parent can act as the positioning reference.
     const computed = window.getComputedStyle(inboxMain);
     if (computed.position === "static") {
         inboxMain.style.position = "relative";
@@ -100,7 +100,7 @@ function setup_inbox_only_behavior(): void {
     window.addEventListener("hashchange", update);
     update();
 
-    // Zulip 有时会重绘 DOM，不一定触发 hashchange，加 observer 兜底
+    // Zulip may re-render DOM without triggering hashchange; observer is a fallback.
     const obs = new MutationObserver(update);
     obs.observe(document.body, {childList: true, subtree: true});
 }
@@ -227,10 +227,10 @@ function render_recap_panel(recap_html: string, refs: Array<{message_id: number;
 
         // Close panel when user navigates
         a.addEventListener("click", () => {
-    // 让跳转照常发生，但先把 recap panel 关掉
+    // Let navigation proceed normally, but close the recap panel first.
             panel.remove();
 
-            // 下一帧/跳转后把滚动锁解除（关键）
+            // Release any scroll lock on the next tick/after navigation.
             window.setTimeout(unlock_page_scroll, 0);
         });
 
@@ -244,7 +244,7 @@ function render_recap_panel(recap_html: string, refs: Array<{message_id: number;
     panel.appendChild(header);
     panel.appendChild(body);
 
-    // 插入到 Inbox 未读列表下方（只在 Inbox）
+    // Insert below the Inbox unread list (Inbox only).
     const inboxList = get_inbox_list();
     if (inboxList && inboxList.parentElement) {
         inboxList.parentElement.insertBefore(panel, inboxList.nextSibling);
@@ -252,7 +252,7 @@ function render_recap_panel(recap_html: string, refs: Array<{message_id: number;
         return;
     }
 
-    // 如果没找到 inboxList，就退化插到 inboxMain 底部
+    // If inboxList is not available, fall back to appending to inboxMain.
     const inboxMain = get_inbox_main();
     if (inboxMain) {
         inboxMain.appendChild(panel);
@@ -260,7 +260,7 @@ function render_recap_panel(recap_html: string, refs: Array<{message_id: number;
         return;
     }
 
-    // 最后兜底
+    // Final fallback.
     document.body.appendChild(panel);
     panel.scrollIntoView({behavior: "smooth"});
 /*
